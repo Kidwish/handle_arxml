@@ -12,20 +12,20 @@ GUIWINDOW = True
 INPUT_FILEPATH = r'./data/CtApMySwc.arxml'
 OUTPUT_JSONPATH = r'./output/output.json'
 
+# 递归地将数据插入到 Treeview 中
 def tk_display(data, parent='', tree=None):
-    """递归地将数据插入到 Treeview 中"""
     if isinstance(data, dict):
         for key, value in data.items():
             if isinstance(value, (dict, list)):
-                item_id = tree.insert(parent, 'end', text=key, values=('',), open=False)
-                tk_display(value, parent=item_id, tree=tree)
+                itemId = tree.insert(parent, 'end', text=key, values=('',), open=False)
+                tk_display(value, parent=itemId, tree=tree)
             else:
                 # 拆分成两个单元格
                 tree.insert(parent, 'end', text=key, values=(str(value),), open=False)
     elif isinstance(data, list):
         for index, item in enumerate(data):
-            item_id = tree.insert(parent, 'end', text=f'[{index}]', values=('',), open=False)
-            tk_display(item, parent=item_id, tree=tree)
+            itemId = tree.insert(parent, 'end', text=f'[{index}]', values=('',), open=False)
+            tk_display(item, parent=itemId, tree=tree)
     else:
         tree.insert(parent, 'end', text='', values=(str(data),), open=False)
 
@@ -52,99 +52,94 @@ def test():
         json_file.write(json_data)
     
 
-    def tk_on_item_left_click(event):
-        """根据内容自动调整 Key 列宽度"""
+    def tk_on_item_left_click(event): # 自动调整列宽
         newWidth = get_max_width_of_open_items()
-        item_id = tree.selection()[0]
-        current_item_width = get_tree_item_width(item_id)
-        newWidth = max(current_item_width, newWidth)
+        itemId = tree.selection()[0]
+        currentItemWidth = get_tree_item_width(itemId)
+        newWidth = max(currentItemWidth, newWidth)
         tree.column('#0', width=newWidth, stretch=False)  
 
     def tk_on_item_right_click(event):
-        # 获取当前选中的项
-        selected_item = tree.selection()
-        if selected_item:
-            item_id = selected_item[0]
-            item_text = tree.item(item_id, 'text')  # 获取项的文本
-            item_value = tree.item(item_id, 'values')  # 获取项的值
+        selectedItem = tree.selection()
+        if selectedItem:
+            itemId = selectedItem[0]
+            itemText = tree.item(itemId, 'text')  # 获取项的文本
+            itemValue = tree.item(itemId, 'values')  # 获取项的值
 
             # 组合文本
-            text_to_copy = f"{item_text}: {item_value[0] if item_value else ''}"
+            textToCopy = f"{itemText}: {itemValue[0] if itemValue else ''}"
             
             # 复制到剪贴板
             root.clipboard_clear()  # 清空剪贴板
-            root.clipboard_append(text_to_copy)  # 添加文本到剪贴板
-            print(f"已复制: {text_to_copy}")
+            root.clipboard_append(textToCopy)  # 添加文本到剪贴板
+            # print(f"已复制: {textToCopy}")
 
-    def on_button_press(event):
-        nonlocal start_x, start_width
+    def tk_on_button_press(event):
+        nonlocal startX, startWidth
         region = tree.identify_region(event.x, event.y)
         if region == "tree":
             item = tree.identify_row(event.y)
             if item:
-                start_x = event.x
-                start_width = tree.column("#0")['width']
+                startX = event.x
+                startWidth = tree.column("#0")['width']
 
-    def on_mouse_drag(event):
-        if start_width > 0:
-            new_width = start_width + (event.x - start_x)
-            tree.column("#0", width=new_width)
+    def tk_on_mouse_drag(event):
+        if startWidth > 0:
+            newWidth = startWidth + (event.x - startX)
+            tree.column("#0", width=newWidth)
 
 
     def get_max_width_of_open_items():
-        max_width = 200
-        def check_width(item_id):
-            nonlocal max_width
-            if tree.item(item_id, 'open'):
+        maxWidth = 200
+        def check_width(itemId):
+            nonlocal maxWidth
+            if tree.item(itemId, 'open'):
                 # 获取当前项的宽度
-                current_width = get_tree_item_width(item_id)
-                max_width = max(max_width, current_width)
+                currentWidth = get_tree_item_width(itemId)
+                maxWidth = max(maxWidth, currentWidth)
 
                 # 递归检查子项
-                for child in tree.get_children(item_id):
+                for child in tree.get_children(itemId):
                     check_width(child)
 
         # 遍历所有根节点
         for item in tree.get_children():
             check_width(item)
 
-        return max_width
+        return maxWidth
 
-    def get_tree_item_width(item_id):
+    def get_tree_item_width(itemId):
         indent = 20
-        item_text = tree.item(item_id, 'text')  # 获取文本
+        itemText = tree.item(itemId, 'text')  # 获取文本
             
         level = 0
-        while item_id:
-            item_id = tree.parent(item_id)  # 获取父节点 ID
+        while itemId:
+            itemId = tree.parent(itemId)  # 获取父节点 ID
             level += 1  # 每向上移动一层，层级加 1
         
-        return level * indent + len(item_text) * 10
+        return level * indent + len(itemText) * 10
 
 
     def expand_all(tree):
-        """展开所有节点"""
+        def expand_all_children(tree, parent):
+            for child in tree.get_children(parent):
+                tree.item(child, open=True)  # 展开子节点
+                expand_all_children(tree, child)  # 递归展开其子节点
+                
         for item in tree.get_children():
             tree.item(item, open=True)  # 展开当前节点
             expand_all_children(tree, item)  # 递归展开子节点
 
-    def expand_all_children(tree, parent):
-        """递归展开所有子节点"""
-        for child in tree.get_children(parent):
-            tree.item(child, open=True)  # 展开子节点
-            expand_all_children(tree, child)  # 递归展开其子节点
-
     def collapse_all(tree):
-        """折叠所有节点"""
+        def collapse_all_children(tree, parent):
+            for child in tree.get_children(parent):
+                tree.item(child, open=False)  # 折叠子节点
+                collapse_all_children(tree, child)  # 递归折叠其子节点
+
         for item in tree.get_children():
             tree.item(item, open=False)  # 折叠当前节点
             collapse_all_children(tree, item)  # 递归折叠子节点
 
-    def collapse_all_children(tree, parent):
-        """递归折叠所有子节点"""
-        for child in tree.get_children(parent):
-            tree.item(child, open=False)  # 折叠子节点
-            collapse_all_children(tree, child)  # 递归折叠其子节点
 
     # 创建主窗口
     root = tk.Tk()
@@ -186,24 +181,24 @@ def test():
         for child in tree.get_children(item):
             tree.item(child, open=False)  # 默认折叠子节点
 
-    start_x = 0
-    start_width = 0
+    startX = 0
+    startWidth = 0
 
     # 添加按钮
-    button_frame = tk.Frame(root)
-    button_frame.pack(side='bottom', fill='x')
+    buttonFrame = tk.Frame(root)
+    buttonFrame.pack(side='bottom', fill='x')
 
-    collapse_button = tk.Button(button_frame, text="全部折叠", command=lambda: collapse_all(tree))
-    collapse_button.pack(side='right', padx=10, pady=10)
-    expand_button = tk.Button(button_frame, text="全部展开", command=lambda: expand_all(tree))
-    expand_button.pack(side='right', padx=10, pady=10)
+    collapseButton = tk.Button(buttonFrame, text="全部折叠", command=lambda: collapse_all(tree))
+    collapseButton.pack(side='right', padx=10, pady=10)
+    expandButton = tk.Button(buttonFrame, text="全部展开", command=lambda: expand_all(tree))
+    expandButton.pack(side='right', padx=10, pady=10)
 
 
     # 绑定事件
     # tree.bind('<ButtonRelease-1>', tk_on_item_left_click)  # 左键事件
     tree.bind('<ButtonRelease-3>', tk_on_item_right_click)  # 右键事件
-    tree.bind('<Button-1>', on_button_press)  # 鼠标左键按下事件
-    tree.bind('<B1-Motion>', on_mouse_drag)  # 鼠标左键拖动事件
+    tree.bind('<Button-1>', tk_on_button_press)  # 鼠标左键按下事件
+    tree.bind('<B1-Motion>', tk_on_mouse_drag)  # 鼠标左键拖动事件
 
 
     # 运行主循环
