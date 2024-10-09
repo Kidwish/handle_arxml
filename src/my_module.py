@@ -107,6 +107,31 @@ def test():
         
         return level * indent + len(item_text) * 10
 
+
+    def expand_all(tree):
+        """展开所有节点"""
+        for item in tree.get_children():
+            tree.item(item, open=True)  # 展开当前节点
+            expand_all_children(tree, item)  # 递归展开子节点
+
+    def expand_all_children(tree, parent):
+        """递归展开所有子节点"""
+        for child in tree.get_children(parent):
+            tree.item(child, open=True)  # 展开子节点
+            expand_all_children(tree, child)  # 递归展开其子节点
+
+    def collapse_all(tree):
+        """折叠所有节点"""
+        for item in tree.get_children():
+            tree.item(item, open=False)  # 折叠当前节点
+            collapse_all_children(tree, item)  # 递归折叠子节点
+
+    def collapse_all_children(tree, parent):
+        """递归折叠所有子节点"""
+        for child in tree.get_children(parent):
+            tree.item(child, open=False)  # 折叠子节点
+            collapse_all_children(tree, child)  # 递归折叠其子节点
+
     # 创建主窗口
     root = tk.Tk()
     root.title("ARXML 数据展示")
@@ -132,7 +157,16 @@ def test():
         tree.item(item, open=True)  # 展开第一层
         for child in tree.get_children(item):
             tree.item(child, open=False)  # 默认折叠子节点
+            
+    # 添加按钮
+    button_frame = tk.Frame(root)
+    button_frame.pack(side='bottom', fill='x')
 
+    expand_button = tk.Button(button_frame, text="全部展开", command=lambda: expand_all(tree))
+    expand_button.pack(side='left', padx=10, pady=10)
+
+    collapse_button = tk.Button(button_frame, text="全部折叠", command=lambda: collapse_all(tree))
+    collapse_button.pack(side='right', padx=10, pady=10)
 
     # 绑定事件
     tree.bind('<ButtonRelease-1>', tk_on_item_left_click)  # 左键事件
