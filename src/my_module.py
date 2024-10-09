@@ -120,7 +120,7 @@ def test():
         return level * indent + len(itemText) * 10
 
 
-    def expand_all(tree):
+    def tk_bn_expand_all(tree):
         def expand_all_children(tree, parent):
             for child in tree.get_children(parent):
                 tree.item(child, open=True)  # 展开子节点
@@ -130,7 +130,7 @@ def test():
             tree.item(item, open=True)  # 展开当前节点
             expand_all_children(tree, item)  # 递归展开子节点
 
-    def collapse_all(tree):
+    def tk_bn_collapse_all(tree):
         def collapse_all_children(tree, parent):
             for child in tree.get_children(parent):
                 tree.item(child, open=False)  # 折叠子节点
@@ -188,9 +188,9 @@ def test():
     buttonFrame = tk.Frame(root)
     buttonFrame.pack(side='bottom', fill='x')
 
-    collapseButton = tk.Button(buttonFrame, text="全部折叠", command=lambda: collapse_all(tree))
+    collapseButton = tk.Button(buttonFrame, text="全部折叠", command=lambda: tk_bn_collapse_all(tree))
     collapseButton.pack(side='right', padx=10, pady=10)
-    expandButton = tk.Button(buttonFrame, text="全部展开", command=lambda: expand_all(tree))
+    expandButton = tk.Button(buttonFrame, text="全部展开", command=lambda: tk_bn_expand_all(tree))
     expandButton.pack(side='right', padx=10, pady=10)
 
 
