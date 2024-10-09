@@ -5,12 +5,12 @@ import xmltodict
 import json
 
 
-GUIWINDOW   = True
+GUIWINDOW   = False
 INDENT      = 20
 TEXTWIDTH   = 10
 
-INPUT_FILEPATH  = r'./data/input.arxml'
-OUTPUT_JSONPATH = r'./output/output.json'
+INPUT_FILEPATH  = r'./data/sample_input.arxml'
+OUTPUT_JSONPATH = r'./output/sample_output.json'
 
 
 def display_arxml_file():

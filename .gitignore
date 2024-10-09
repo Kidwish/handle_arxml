@@ -1,3 +1,6 @@
 data/
 src/__pycache__/
 output/
+
+!data/sample_input.arxml
+!output/sample_output.json

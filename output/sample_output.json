@@ -1,0 +1,23 @@
+{
+    "AUTOSAR": {
+        "@xsi:schemaLocation": "http://autosar.org/schema/r4.0 AUTOSAR_00049.xsd",
+        "@xmlns": "http://autosar.org/schema/r4.0",
+        "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "AR-PACKAGES": {
+            "AR-PACKAGE": {
+                "@UUID": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+                "SHORT-NAME": "ComponentTypes",
+                "ELEMENTS": {
+                    "SWC-IMPLEMENTATION": {
+                        "@UUID": "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB",
+                        "SHORT-NAME": "MySwc_Implementation",
+                        "BEHAVIOR-REF": {
+                            "@DEST": "SWC-INTERNAL-BEHAVIOR",
+                            "#text": "/ComponentTypes/MySwc/MySwc_InternalBehavior"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
