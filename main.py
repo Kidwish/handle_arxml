@@ -1,5 +1,5 @@
 # main.py
-from src import my_module
+from src import handle_arxml
 
 if __name__ == "__main__":
-    my_module.test()
+    handle_arxml.display_arxml_file()

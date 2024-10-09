@@ -11,25 +11,8 @@ TEXTWIDTH   = 10
 INPUT_FILEPATH  = r'./data/CtApMySwc.arxml'
 OUTPUT_JSONPATH = r'./output/output.json'
 
-# 递归地将数据插入到 Treeview 中
-def tk_display(data, parent='', tree=None):
-    if isinstance(data, dict):
-        for key, value in data.items():
-            if isinstance(value, (dict, list)):
-                itemId = tree.insert(parent, 'end', text=key, values=('',), open=False)
-                tk_display(value, parent=itemId, tree=tree)
-            else:
-                # 拆分成两个单元格
-                tree.insert(parent, 'end', text=key, values=(str(value),), open=False)
-    elif isinstance(data, list):
-        for index, item in enumerate(data):
-            itemId = tree.insert(parent, 'end', text=f'[{index}]', values=('',), open=False)
-            tk_display(item, parent=itemId, tree=tree)
-    else:
-        tree.insert(parent, 'end', text='', values=(str(data),), open=False)
 
-
-def test():
+def display_arxml_file():
     if GUIWINDOW:
         inputFilePath = filedialog.askopenfilename(
             title="选择一个文件",
@@ -43,6 +26,24 @@ def test():
     # 读取 ARXML 文件并转换为字典
     with open(inputFilePath) as file:
         arxml_dict = xmltodict.parse(file.read())
+
+
+    # 递归地将数据插入到 Treeview 中
+    def tk_display(data, parent=''):
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, (dict, list)):
+                    itemId = tree.insert(parent, 'end', text=key, values=('',), open=False)
+                    tk_display(value, parent=itemId)
+                else:
+                    # 拆分成两个单元格
+                    tree.insert(parent, 'end', text=key, values=(str(value),), open=False)
+        elif isinstance(data, list):
+            for index, item in enumerate(data):
+                itemId = tree.insert(parent, 'end', text=f'[{index}]', values=('',), open=False)
+                tk_display(item, parent=itemId)
+        else:
+            tree.insert(parent, 'end', text='', values=(str(data),), open=False)
 
     def tk_on_item_left_click(event): # 自动调整列宽
         newWidth = get_max_width_of_open_items()
@@ -182,7 +183,7 @@ def test():
     tree.pack(expand=True, fill='both')
 
     # 插入数据
-    tk_display(arxml_dict, tree=tree)
+    tk_display(arxml_dict)
 
 
     # 默认展开第一层，折叠其他层级
