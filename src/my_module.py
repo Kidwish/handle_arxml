@@ -1,15 +1,14 @@
-import os
-from lxml import etree
-import pandas as pd
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk, font
+from tkinter import filedialog, messagebox, ttk
 import xmltodict
 import json
 
 
-GUIWINDOW = True
+GUIWINDOW   = True
+INDENT      = 20
+TEXTWIDTH   = 10
 
-INPUT_FILEPATH = r'./data/CtApMySwc.arxml'
+INPUT_FILEPATH  = r'./data/CtApMySwc.arxml'
 OUTPUT_JSONPATH = r'./output/output.json'
 
 # 递归地将数据插入到 Treeview 中
@@ -31,7 +30,6 @@ def tk_display(data, parent='', tree=None):
 
 
 def test():
-    
     if GUIWINDOW:
         inputFilePath = filedialog.askopenfilename(
             title="选择一个文件",
@@ -39,18 +37,12 @@ def test():
             )
     else:
         inputFilePath = INPUT_FILEPATH
+    
+    inputFileName = inputFilePath.split("/")[-1]
 
     # 读取 ARXML 文件并转换为字典
     with open(inputFilePath) as file:
         arxml_dict = xmltodict.parse(file.read())
-
-    # 将字典转换为 JSON
-    json_data = json.dumps(arxml_dict, indent=4)
-
-    # 将 JSON 数据保存到文件
-    with open(OUTPUT_JSONPATH, 'w') as json_file:
-        json_file.write(json_data)
-    
 
     def tk_on_item_left_click(event): # 自动调整列宽
         newWidth = get_max_width_of_open_items()
@@ -109,15 +101,15 @@ def test():
         return maxWidth
 
     def get_tree_item_width(itemId):
-        indent = 20
+        indent = INDENT
         itemText = tree.item(itemId, 'text')  # 获取文本
-            
+
         level = 0
         while itemId:
             itemId = tree.parent(itemId)  # 获取父节点 ID
             level += 1  # 每向上移动一层，层级加 1
         
-        return level * indent + len(itemText) * 10
+        return level * indent + len(itemText) * TEXTWIDTH
 
 
     def tk_bn_expand_all(tree):
@@ -139,6 +131,24 @@ def test():
         for item in tree.get_children():
             tree.item(item, open=False)  # 折叠当前节点
             collapse_all_children(tree, item)  # 递归折叠子节点
+
+    def tk_bn_save_json():
+        if GUIWINDOW:
+            outputFilePath = filedialog.asksaveasfilename(
+                title="保存文件",
+                defaultextension=".json",  # 默认扩展名
+                filetypes=[("Json文件", "*.json")],  # 文件类型过滤
+                initialfile=f"{inputFileName}.json"  # 默认文件名
+                )
+        else:
+            outputFilePath = OUTPUT_JSONPATH
+
+        # 将字典转换为 JSON
+        json_data = json.dumps(arxml_dict, indent=4)
+
+        # 将 JSON 数据保存到文件
+        with open(outputFilePath, 'w') as json_file:
+            json_file.write(json_data)
 
 
     # 创建主窗口
@@ -188,6 +198,8 @@ def test():
     buttonFrame = tk.Frame(root)
     buttonFrame.pack(side='bottom', fill='x')
 
+    saveJsonButtom = tk.Button(buttonFrame, text="保存为 JSON", command=lambda: tk_bn_save_json())
+    saveJsonButtom.pack(side='right', padx=10, pady=10)
     collapseButton = tk.Button(buttonFrame, text="全部折叠", command=lambda: tk_bn_collapse_all(tree))
     collapseButton.pack(side='right', padx=10, pady=10)
     expandButton = tk.Button(buttonFrame, text="全部展开", command=lambda: tk_bn_expand_all(tree))
