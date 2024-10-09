@@ -2,7 +2,7 @@ import os
 from lxml import etree
 import pandas as pd
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, ttk, font
 import xmltodict
 import json
 
@@ -12,20 +12,20 @@ GUIWINDOW = True
 INPUT_FILEPATH = r'./data/CtApMySwc.arxml'
 OUTPUT_JSONPATH = r'./output/output.json'
 
-def display_json(data, parent='', tree=None):
-    """递归地将 JSON 数据插入到 Treeview 中"""
+def tk_display(data, parent='', tree=None):
+    """递归地将数据插入到 Treeview 中"""
     if isinstance(data, dict):
         for key, value in data.items():
             if isinstance(value, (dict, list)):
                 item_id = tree.insert(parent, 'end', text=key, values=('',), open=False)
-                display_json(value, parent=item_id, tree=tree)
+                tk_display(value, parent=item_id, tree=tree)
             else:
                 # 拆分成两个单元格
                 tree.insert(parent, 'end', text=key, values=(str(value),), open=False)
     elif isinstance(data, list):
         for index, item in enumerate(data):
             item_id = tree.insert(parent, 'end', text=f'[{index}]', values=('',), open=False)
-            display_json(item, parent=item_id, tree=tree)
+            tk_display(item, parent=item_id, tree=tree)
     else:
         tree.insert(parent, 'end', text='', values=(str(data),), open=False)
 
@@ -51,29 +51,81 @@ def test():
     with open(OUTPUT_JSONPATH, 'w') as json_file:
         json_file.write(json_data)
     
-    json_data = arxml_dict
+
+    def tk_on_item_left_click(event):
+        """根据内容自动调整 Key 列宽度"""
+        newWidth = get_max_width_of_open_items()
+        item_id = tree.selection()[0]
+        current_item_width = get_tree_item_width(item_id)
+        newWidth = max(current_item_width, newWidth)
+        tree.column('#0', width=newWidth, stretch=False)  
+
+    def tk_on_item_right_click(event):
+        # 获取当前选中的项
+        selected_item = tree.selection()
+        if selected_item:
+            item_id = selected_item[0]
+            item_text = tree.item(item_id, 'text')  # 获取项的文本
+            item_value = tree.item(item_id, 'values')  # 获取项的值
+
+            # 组合文本
+            text_to_copy = f"{item_text}: {item_value[0] if item_value else ''}"
+            
+            # 复制到剪贴板
+            root.clipboard_clear()  # 清空剪贴板
+            root.clipboard_append(text_to_copy)  # 添加文本到剪贴板
+            print(f"已复制: {text_to_copy}")
+
+
+    def get_max_width_of_open_items():
+        max_width = 200
+        def check_width(item_id):
+            nonlocal max_width
+            if tree.item(item_id, 'open'):
+                # 获取当前项的宽度
+                current_width = get_tree_item_width(item_id)
+                max_width = max(max_width, current_width)
+
+                # 递归检查子项
+                for child in tree.get_children(item_id):
+                    check_width(child)
+
+        # 遍历所有根节点
+        for item in tree.get_children():
+            check_width(item)
+
+        return max_width
+
+    def get_tree_item_width(item_id):
+        indent = 20
+        item_text = tree.item(item_id, 'text')  # 获取文本
+            
+        level = 0
+        while item_id:
+            item_id = tree.parent(item_id)  # 获取父节点 ID
+            level += 1  # 每向上移动一层，层级加 1
+        
+        return level * indent + len(item_text) * 10
+
     # 创建主窗口
     root = tk.Tk()
     root.title("ARXML 数据展示")
-    root.geometry("1600x400")
+    root.geometry("800x400")
 
     # 创建 Treeview
     tree = ttk.Treeview(root, columns=('Value',), show='tree')
-    tree.heading('#0', text='Key')
+    tree.heading('#0', text='Key')  # 主树形结构列
     tree.heading('Value', text='Value')
-    tree.column('Value', width=400)  # 设置第二列的宽度
 
-    # 允许用户调整列宽
-    tree.column('#0', width=200, stretch=False)
+    # 设置列宽
+    tree.column('#0', width=200, stretch=False)  # 固定 Key 列宽
+    tree.column('Value', width=400, stretch=True)  # 允许用户调整 Value 列宽
+
     tree.pack(expand=True, fill='both')
 
-    # 添加滚动条
-    scrollbar = ttk.Scrollbar(root, orient='vertical', command=tree.yview)
-    scrollbar.pack(side='right', fill='y')
-    tree.configure(yscroll=scrollbar.set)
+    # 插入数据
+    tk_display(arxml_dict, tree=tree)
 
-    # 插入 JSON 数据
-    display_json(json_data, tree=tree)
 
     # 默认展开第一层，折叠其他层级
     for item in tree.get_children():
@@ -81,10 +133,14 @@ def test():
         for child in tree.get_children(item):
             tree.item(child, open=False)  # 默认折叠子节点
 
+
+    # 绑定事件
+    tree.bind('<ButtonRelease-1>', tk_on_item_left_click)  # 左键事件
+    tree.bind('<ButtonRelease-3>', tk_on_item_right_click)  # 右键事件
+
+
     # 运行主循环
     root.mainloop()
-
-
 
 
 
