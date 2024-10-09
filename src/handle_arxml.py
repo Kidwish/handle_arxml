@@ -8,7 +8,7 @@ GUIWINDOW   = True
 INDENT      = 20
 TEXTWIDTH   = 10
 
-INPUT_FILEPATH  = r'./data/CtApMySwc.arxml'
+INPUT_FILEPATH  = r'./data/input.arxml'
 OUTPUT_JSONPATH = r'./output/output.json'
 
 
