@@ -124,7 +124,7 @@ def display_arxml_file():
             tree.item(item, open=True)  # 展开当前节点
             expand_all_children(tree, item)  # 递归展开子节点
         
-        infoLabel.config(text="按下左键并滑动以显示完整信息" )
+        infoLabel.config(text="按下左键并拖动以显示完整信息" )
 
     def tk_bn_collapse_all(tree):
         def collapse_all_children(tree, parent):
