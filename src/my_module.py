@@ -76,6 +76,20 @@ def test():
             root.clipboard_append(text_to_copy)  # 添加文本到剪贴板
             print(f"已复制: {text_to_copy}")
 
+    def on_button_press(event):
+        nonlocal start_x, start_width
+        region = tree.identify_region(event.x, event.y)
+        if region == "tree":
+            item = tree.identify_row(event.y)
+            if item:
+                start_x = event.x
+                start_width = tree.column("#0")['width']
+
+    def on_mouse_drag(event):
+        if start_width > 0:
+            new_width = start_width + (event.x - start_x)
+            tree.column("#0", width=new_width)
+
 
     def get_max_width_of_open_items():
         max_width = 200
@@ -137,14 +151,28 @@ def test():
     root.title("ARXML 数据展示")
     root.geometry("800x400")
 
+    # 创建框架以容纳 Treeview 和滚动条
+    frame = tk.Frame(root)
+    frame.pack(expand=True, fill='both')
+
     # 创建 Treeview
-    tree = ttk.Treeview(root, columns=('Value',), show='tree')
+    tree = ttk.Treeview(frame, columns=('Value',), show='tree')
     tree.heading('#0', text='Key')  # 主树形结构列
     tree.heading('Value', text='Value')
 
     # 设置列宽
     tree.column('#0', width=200, stretch=False)  # 固定 Key 列宽
     tree.column('Value', width=400, stretch=True)  # 允许用户调整 Value 列宽
+
+    # 创建纵向滚动条
+    vScrollbar = ttk.Scrollbar(frame, orient='vertical', command=tree.yview)
+    vScrollbar.pack(side='right', fill='y')
+    tree.configure(yscroll=vScrollbar.set)
+
+    # 创建横向滚动条
+    hScrollbar = ttk.Scrollbar(frame, orient='horizontal', command=tree.xview)
+    hScrollbar.pack(side='bottom', fill='x')
+    tree.configure(xscroll=hScrollbar.set)
 
     tree.pack(expand=True, fill='both')
 
@@ -157,20 +185,25 @@ def test():
         tree.item(item, open=True)  # 展开第一层
         for child in tree.get_children(item):
             tree.item(child, open=False)  # 默认折叠子节点
-            
+
+    start_x = 0
+    start_width = 0
+
     # 添加按钮
     button_frame = tk.Frame(root)
     button_frame.pack(side='bottom', fill='x')
 
-    expand_button = tk.Button(button_frame, text="全部展开", command=lambda: expand_all(tree))
-    expand_button.pack(side='left', padx=10, pady=10)
-
     collapse_button = tk.Button(button_frame, text="全部折叠", command=lambda: collapse_all(tree))
     collapse_button.pack(side='right', padx=10, pady=10)
+    expand_button = tk.Button(button_frame, text="全部展开", command=lambda: expand_all(tree))
+    expand_button.pack(side='right', padx=10, pady=10)
+
 
     # 绑定事件
-    tree.bind('<ButtonRelease-1>', tk_on_item_left_click)  # 左键事件
+    # tree.bind('<ButtonRelease-1>', tk_on_item_left_click)  # 左键事件
     tree.bind('<ButtonRelease-3>', tk_on_item_right_click)  # 右键事件
+    tree.bind('<Button-1>', on_button_press)  # 鼠标左键按下事件
+    tree.bind('<B1-Motion>', on_mouse_drag)  # 鼠标左键拖动事件
 
 
     # 运行主循环
