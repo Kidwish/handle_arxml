@@ -5,7 +5,7 @@ import xmltodict
 import json
 
 
-GUIWINDOW   = False
+GUIWINDOW   = True
 INDENT      = 20
 TEXTWIDTH   = 10
 
@@ -123,6 +123,8 @@ def display_arxml_file():
         for item in tree.get_children():
             tree.item(item, open=True)  # 展开当前节点
             expand_all_children(tree, item)  # 递归展开子节点
+        
+        infoLabel.config(text="按下左键并滑动以显示完整信息" )
 
     def tk_bn_collapse_all(tree):
         def collapse_all_children(tree, parent):
@@ -159,11 +161,11 @@ def display_arxml_file():
     root.geometry("800x400")
 
     # 创建框架以容纳 Treeview 和滚动条
-    frame = tk.Frame(root)
-    frame.pack(expand=True, fill='both')
+    mainFrame = tk.Frame(root)
+    mainFrame.pack(expand=True, fill='both')
 
     # 创建 Treeview
-    tree = ttk.Treeview(frame, columns=('Value',), show='tree')
+    tree = ttk.Treeview(mainFrame, columns=('Value',), show='tree')
     tree.heading('#0', text='Key')  # 主树形结构列
     tree.heading('Value', text='Value')
 
@@ -172,12 +174,12 @@ def display_arxml_file():
     tree.column('Value', width=400, stretch=True)  # 允许用户调整 Value 列宽
 
     # 创建纵向滚动条
-    vScrollbar = ttk.Scrollbar(frame, orient='vertical', command=tree.yview)
+    vScrollbar = ttk.Scrollbar(mainFrame, orient='vertical', command=tree.yview)
     vScrollbar.pack(side='right', fill='y')
     tree.configure(yscroll=vScrollbar.set)
 
     # 创建横向滚动条
-    hScrollbar = ttk.Scrollbar(frame, orient='horizontal', command=tree.xview)
+    hScrollbar = ttk.Scrollbar(mainFrame, orient='horizontal', command=tree.xview)
     hScrollbar.pack(side='bottom', fill='x')
     tree.configure(xscroll=hScrollbar.set)
 
@@ -196,17 +198,20 @@ def display_arxml_file():
     startX = 0
     startWidth = 0
 
-    # 添加按钮
-    buttonFrame = tk.Frame(root)
-    buttonFrame.pack(side='bottom', fill='x')
+    bottomFrame = tk.Frame(root)
+    bottomFrame.pack(side='bottom', fill='x')
 
-    saveJsonButtom = tk.Button(buttonFrame, text="保存为 JSON", command=lambda: tk_bn_save_json())
+    # 添加按钮
+    saveJsonButtom = tk.Button(bottomFrame, text="保存为 JSON", command=lambda: tk_bn_save_json())
     saveJsonButtom.pack(side='right', padx=10, pady=10)
-    collapseButton = tk.Button(buttonFrame, text="全部折叠", command=lambda: tk_bn_collapse_all(tree))
+    collapseButton = tk.Button(bottomFrame, text="全部折叠", command=lambda: tk_bn_collapse_all(tree))
     collapseButton.pack(side='right', padx=10, pady=10)
-    expandButton = tk.Button(buttonFrame, text="全部展开", command=lambda: tk_bn_expand_all(tree))
+    expandButton = tk.Button(bottomFrame, text="全部展开", command=lambda: tk_bn_expand_all(tree))
     expandButton.pack(side='right', padx=10, pady=10)
 
+    # 添加提示标签
+    infoLabel = tk.Label(bottomFrame, text="")
+    infoLabel.pack(side='left', padx=10, pady=10)
 
     # 绑定事件
     # tree.bind('<ButtonRelease-1>', tk_on_item_left_click)  # 左键事件
