@@ -26,7 +26,7 @@ def display_arxml_file():
 
     # 读取 ARXML 文件并转换为字典
     with open(inputFilePath) as file:
-        arxml_dict = xmltodict.parse(file.read())
+        arxmlDict = xmltodict.parse(file.read())
 
 
     # 递归地将数据插入到 Treeview 中
@@ -148,11 +148,11 @@ def display_arxml_file():
             outputFilePath = OUTPUT_JSONPATH
 
         # 将字典转换为 JSON
-        json_data = json.dumps(arxml_dict, indent=4)
+        jsonData = json.dumps(arxmlDict, indent=4)
 
         # 将 JSON 数据保存到文件
-        with open(outputFilePath, 'w') as json_file:
-            json_file.write(json_data)
+        with open(outputFilePath, 'w') as jsonFile:
+            jsonFile.write(jsonData)
 
 
     # 创建主窗口
@@ -186,7 +186,7 @@ def display_arxml_file():
     tree.pack(expand=True, fill='both')
 
     # 插入数据
-    tk_display(arxml_dict)
+    tk_display(arxmlDict)
 
 
     # 默认展开第一层，折叠其他层级
