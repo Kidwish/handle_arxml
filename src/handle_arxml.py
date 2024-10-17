@@ -66,6 +66,7 @@ def display_arxml_file():
             # 复制到剪贴板
             root.clipboard_clear()  # 清空剪贴板
             root.clipboard_append(textToCopy)  # 添加文本到剪贴板
+            messagebox.showinfo("提示", "内容已复制！")
             # print(f"已复制: {textToCopy}")
 
     def tk_on_button_press(event):
@@ -124,7 +125,7 @@ def display_arxml_file():
             tree.item(item, open=True)  # 展开当前节点
             expand_all_children(tree, item)  # 递归展开子节点
         
-        infoLabel.config(text="按下左键并拖动以显示完整信息" )
+        infoLabel.config(text="按下左键并拖动以显示完整信息\n选中内容后右键即可复制", justify='left')
 
     def tk_bn_collapse_all(tree):
         def collapse_all_children(tree, parent):
@@ -212,6 +213,7 @@ def display_arxml_file():
     # 添加提示标签
     infoLabel = tk.Label(bottomFrame, text="")
     infoLabel.pack(side='left', padx=10, pady=10)
+    infoLabel.config(text="选中内容后右键即可复制", justify='left')
 
     # 绑定事件
     # tree.bind('<ButtonRelease-1>', tk_on_item_left_click)  # 左键事件
